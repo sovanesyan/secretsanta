@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"flag"
+	"fmt"
 	"log"
 	"math/rand"
 	"os"
@@ -123,34 +124,25 @@ func check(e error) {
 
 func sendInvitations(presents []present, peoplesMap map[string]string) {
 	dialer := gomail.NewDialer(*smtpHost, *smtpPort, *smtpUsername, *smtpPassword)
-
-	mails := make(chan *gomail.Message, 5)
-	done := make(chan bool)
-
-	go func() {
-		for {
-			mail, more := <-mails
-			if more {
-				if *dryRun == false {
-					dialer.DialAndSend(mail)
-				}
-				log.Println("received mail", mail)
-			} else {
-				log.Println("received all mails")
-				done <- true
-				return
-			}
-		}
-	}()
+	template := "Здравей %v,\n\n " +
+		"Получаваш този мейл за да разбереш за кой трябва да приготвиш притеснително евтин подарък (до 10 лева).\n\n" +
+		"Ти, %v подаряваш подарък на %v. Успех.\n\n" +
+		"Поздрави, \nСерж\n\n." +
+		"Произведено със SecretSanta Maker 4000."
 
 	for _, v := range presents {
 		message := gomail.NewMessage()
 		message.SetHeader("To", peoplesMap[v.giver])
 		message.SetHeader("From", "sovanesyan@gmail.com")
 		message.SetHeader("Subject", "Твой ред е да си дядо Коледа.")
-		//message.SetBody("text/plain", fmt.Sprintf("Здравей %s, \n\n "))
-		mails <- message
+		message.SetBody("text/plain", fmt.Sprintf(template, v.giver, v.giver, v.receiver))
+		if *verbose {
+			log.Printf("Prepared email for %v\n", v.giver)
+		}
+		if *dryRun == false {
+			dialer.DialAndSend(message)
+			log.Printf("Sent email to %v\n", v.giver)
+		}
+
 	}
-	close(mails)
-	<-done
 }
