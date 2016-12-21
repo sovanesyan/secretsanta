@@ -130,18 +130,18 @@ func sendInvitations(presents []present, peoplesMap map[string]string) {
 		"Поздрави, \nСерж\n\n." +
 		"Произведено със SecretSanta Maker 4000."
 
-	for _, v := range presents {
+	for _, present := range presents {
 		message := gomail.NewMessage()
-		message.SetHeader("To", peoplesMap[v.giver])
+		message.SetHeader("To", peoplesMap[present.giver])
 		message.SetHeader("From", "sovanesyan@gmail.com")
 		message.SetHeader("Subject", "Твой ред е да си дядо Коледа.")
-		message.SetBody("text/plain", fmt.Sprintf(template, v.giver, v.giver, v.receiver))
+		message.SetBody("text/plain", fmt.Sprintf(template, present.giver, present.giver, present.receiver))
 		if *verbose {
-			log.Printf("Prepared email for %v\n", v.giver)
+			log.Printf("Prepared email for %v\n", present.giver)
 		}
 		if *dryRun == false {
 			dialer.DialAndSend(message)
-			log.Printf("Sent email to %v\n", v.giver)
+			log.Printf("Sent email to %v\n", present.giver)
 		}
 
 	}
